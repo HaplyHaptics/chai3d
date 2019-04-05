@@ -31,6 +31,14 @@ Support and examples for extension frameworks can be found in the dedicated modu
 CHAI3D supports a selection of commercial haptic devices and trackers. 
 Information about their installation and support within CHAI3D can be found in the documentation folder: [doc/html/chapter2-installation.html](doc/html/chapter2-installation.html)
 
+### Haply devices support
+
+This Chai3d distribution features support for Haply devices using [Haply-API-cpp](https://github.com/HaplyHaptics/Haply-API-cpp). If you enable Haply devices support, the Chai3d distribution is then licensed under the terms ofthe [GPLv3 License](LICENSE-Haply-API-cpp.md). 
+
+To enable Haply device support: 
+ * Update git submodules in the cloned repository: `git submodule update --init --recursive`
+ * Compile with CMake using your favorite integrated development environment or terminal, with CMake option `ENABLE_HAPLY_DEVICES` set to `ON`.
+
 ## Contributing
 
 If you have developed a new module or improved any of the capabilities of CHAI3D and would like to share them with the community, please contact our development team at [developers@chai3d.org](mailto:developers@chai3d.org)
@@ -64,8 +72,35 @@ For scientific publications, please reference CHAI3D:
   address   = {Dublin, Ireland}
 }
 ```
+
+If you publish work using Chai3d with the Haply device (including ports and transpilations to other development languages), we kindly ask you to properly acknowledge our work by citing the publication related to the first showcase of the first demo using Haply devices with Chai3d: 
+
+```
+@inproceedings{FrissonFreesoundTrackerHAID2019,
+ author = {Frisson, Christian and Gallacher, Colin and Wanderley, Marcelo M.},
+ title = {Haptic techniques for browsing sound maps organized by similarity},
+ booktitle = {International Workshop on Haptic and Audio Interaction Design},
+ series = {HAID},
+ year = {2019},
+ month = {Mar},
+ pages = {1},
+ address = {Lille, France},
+ url = {https://hal.archives-ouvertes.fr/hal-02050235},
+ pdf = {https://hal.archives-ouvertes.fr/hal-02050235/file/demo3.pdf},
+ hal_id = {hal-02050235},
+ hal_version = {v1},
+}
+```
+
+
 ## Copyright
 
 (C) 2003-2019 by CHAI3D
 
+(C) 2019 by Haply
+
 All Rights Reserved.
+
+## Acknowledgements
+
+Haply device support in Chai3d has been undertaken as part of [Christian Frisson](http://frisson.re)'s postdoctoral fellowship with [Marcelo M. Wanderley](http://idmil.org) at McGill University, supported by [Mitacs](https://www.mitacs.ca) Elevate grant IT12555 co-funded by [Haply Robotics](http://haply.co).

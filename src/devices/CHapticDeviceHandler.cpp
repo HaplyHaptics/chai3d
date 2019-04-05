@@ -64,6 +64,10 @@
 #include "devices/CLeapDevices.h"
 #endif
 
+#if defined(C_ENABLE_HAPLY_DEVICE_SUPPORT)
+#include "devices/CHaplyDevices.h"
+#endif
+
 #if defined(C_ENABLE_SIXENSE_DEVICE_SUPPORT)
 #include "devices/CSixenseDevices.h"
 #endif
@@ -179,6 +183,23 @@ void cHapticDeviceHandler::update()
 
     #endif
 
+    //--------------------------------------------------------------------------
+    // search for Haply devices
+    //--------------------------------------------------------------------------
+    #if defined(C_ENABLE_HAPLY_DEVICE_SUPPORT)
+
+    // check for how many devices are available for this class of devices
+    count = cHaplyDevice::getNumDevices();
+
+    // open all remaining devices
+    for (int i=0; i<count; i++)
+    {
+        device = cHaplyDevice::create(i);
+        m_devices[m_numDevices] = device;
+        m_numDevices++;
+    }
+
+    #endif
 
     //--------------------------------------------------------------------------
     // search for Sixense devices

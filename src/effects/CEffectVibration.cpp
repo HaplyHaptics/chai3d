@@ -95,7 +95,7 @@ bool cEffectVibration::computeForce(const cVector3d& a_toolPos,
         // compute force magnitude
         double forceMag = vibrationAmplitude * sin(2.0 * C_PI *vibrationFrequency * time);
 
-        a_reactionForce = cMul(forceMag, cVector3d(1, 0, 0));
+        a_reactionForce = cMul(forceMag, cVector3d(0, 1, 1));
         return (true);
     }
     else

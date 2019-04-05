@@ -1,0 +1,13 @@
+# binary libraries
+bin/*-*/*
+!bin/*-*/*hdPhantom*
+!bin/*-*/*sixense*
+!bin/*-*/*Leap*
+
+# build: settings
+.vscode
+CMakeLists.txt.user
+
+# build: compiled files 
+build
+obj

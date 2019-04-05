@@ -1,0 +1,4 @@
+[submodule "Haply-API-cpp"]
+	path = external/github-HaplyHaptics-Haply-API-cpp
+	url = git@github.com:HaplyHaptics/Haply-API-cpp.git
+	branch = master

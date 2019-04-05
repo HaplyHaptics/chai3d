@@ -72,9 +72,34 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES Darwin)
 endif ()
 
 # enforce build type
-if (NOT CMAKE_BUILD_TYPE)
-  set (CMAKE_BUILD_TYPE Release CACHE STRING "Setting build mode to Release" FORCE)
+#if (NOT CMAKE_BUILD_TYPE)
+#  set (CMAKE_BUILD_TYPE Release CACHE STRING "Setting build mode to Release" FORCE)
+#endif()
+
+option(USE_DEBUG "Use Debug" ON)
+option(ENABLE_HAPLY_DEVICES "Enable Haply devices" ON)
+
+if(ENABLE_HAPLY_DEVICES)
+add_definitions(-DENABLE_HAPLY_DEVICES)
 endif()
+
+if(USE_DEBUG)
+        message( "\nConfigured for Debug Build")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_DEBUG -DTI_DEBUG=1")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_DEBUG -DTI_DEBUG=1")
+        if(NOT WIN32)
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+        endif()
+        set(CMAKE_BUILD_TYPE "Debug")
+        set(CMAKE_VERBOSE_MAKEFILE ON)
+else(USE_DEBUG)
+        message( "\nConfigured for Release Build")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DTI_DEBUG=0 -O3")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTI_DEBUG=0 -O3")
+        set(CMAKE_BUILD_TYPE "MinSizeRel")#Debug|Release|RelWithDebInfo|MinSizeRel
+        set(CMAKE_VERBOSE_MAKEFILE ON)#CF
+endif(USE_DEBUG)
 
 # output location
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY                ${PROJECT_SOURCE_DIR}/bin/${OS}-${ARCH})
@@ -155,6 +180,12 @@ include_directories (${PROJECT_SOURCE_DIR}/external/theoraplayer/external/theora
 include_directories (${PROJECT_SOURCE_DIR}/external/theoraplayer/external/vorbis/include)
 include_directories (${PROJECT_SOURCE_DIR}/external/theoraplayer/external/vorbis/lib)
 include_directories (${PROJECT_SOURCE_DIR}/external/theoraplayer/src/Theora)
+if(ENABLE_HAPLY_DEVICES)
+include_directories (${PROJECT_SOURCE_DIR}/external/github-HaplyHaptics-Haply-API-cpp)
+include_directories (${PROJECT_SOURCE_DIR}/external/github-HaplyHaptics-Haply-API-cpp/src)
+include_directories (${PROJECT_SOURCE_DIR}/external/github-HaplyHaptics-Haply-API-cpp/external/github-HaplyHaptics-serial/include)
+add_subdirectory (${PROJECT_SOURCE_DIR}/external/github-HaplyHaptics-Haply-API-cpp)
+endif(ENABLE_HAPLY_DEVICES)
 
 # static library source files
 file (GLOB_RECURSE source RELATIVE ${CHAI3D_SOURCE_DIR} ${CHAI3D_SOURCE_DIR}/src/*.cpp ${CHAI3D_SOURCE_DIR}/src/*.h)
@@ -195,6 +226,9 @@ add_library (chai3d STATIC ${source} ${source_eigen} ${source_gif} ${source_glew
 # library exports
 set (CHAI3D_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src" "${PROJECT_SOURCE_DIR}/external/Eigen" "${PROJECT_SOURCE_DIR}/external/glew/include" "${OPENGL_INCLUDE_DIR}")
 set (CHAI3D_LIBRARIES chai3d ${OPENGL_LIBRARIES})
+if(ENABLE_HAPLY_DEVICES)
+list(APPEND CHAI3D_LIBRARIES haply-api-cpp)
+endif(ENABLE_HAPLY_DEVICES)
 set (CHAI3D_DEFINITIONS ${PROJECT_DEFINITIONS})
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES Windows)
   set (CHAI3D_LIBRARIES ${CHAI3D_LIBRARIES} drd)
@@ -240,7 +274,11 @@ endif ()
 #
 
 # export package for use from the build tree
-export (TARGETS chai3d FILE ${PROJECT_BINARY_DIR}/CHAI3DTargets.cmake)
+set(EXPORT_TARGETS chai3d)
+if(ENABLE_HAPLY_DEVICES)
+list(APPEND EXPORT_TARGETS haply-api-cpp serial)
+endif(ENABLE_HAPLY_DEVICES)
+export (TARGETS ${EXPORT_TARGETS} FILE ${PROJECT_BINARY_DIR}/CHAI3DTargets.cmake)
 export (PACKAGE CHAI3D)
 
 # package definitions
