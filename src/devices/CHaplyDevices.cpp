@@ -65,7 +65,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-namespace chai3d {
+namespace chai3d
+{
 //------------------------------------------------------------------------------
 
 using namespace Haply;
@@ -77,7 +78,8 @@ using namespace Haply;
 #include <unistd.h>
 #endif
 
-void _sleep(unsigned long milliseconds) {
+void _sleep(unsigned long milliseconds)
+{
 #ifdef _WIN32
       Sleep(milliseconds);
 #else
@@ -108,6 +110,11 @@ cHaplyDevice::cHaplyDevice(unsigned int a_deviceNumber)
     m_serial = 0;
     m_board = 0;
     m_device = 0;
+    m_pantograph = 0;
+    //! Baud rate of serial communication. Use 0 to let the serial implementation choose the baudrate:
+    m_baud_rate = 4000000;
+    //! Port name of board. Leave empty to let the serial implementation match the first available port:
+    m_port_name = "";
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -130,20 +137,20 @@ cHaplyDevice::cHaplyDevice(unsigned int a_deviceNumber)
     //--------------------------------------------------------------------------
 
     // the maximum force [N] the device can produce along the x,y,z axis.
-    m_specifications.m_maxLinearForce                = 10.0;     // [N]
+    m_specifications.m_maxLinearForce                = 5.0;     // [N]
 
     // the maximum amount of torque your device can provide arround its
     // rotation degrees of freedom.
-    m_specifications.m_maxAngularTorque              = 0.2;     // [N*m]
+    m_specifications.m_maxAngularTorque              = 0.0;     // [N*m]
 
     // the maximum amount of torque which can be provided by your gripper
-    m_specifications.m_maxGripperForce                = 3.0;     // [N]
+    m_specifications.m_maxGripperForce                = 0.0;     // [N]
 
     // the maximum closed loop linear stiffness in [N/m] along the x,y,z axis
-    m_specifications.m_maxLinearStiffness             = 1000.0; // [N/m]
+    m_specifications.m_maxLinearStiffness             = 300.0; // [N/m]
 
     // the maximum amount of angular stiffness
-    m_specifications.m_maxAngularStiffness            = 1.0;    // [N*m/Rad]
+    m_specifications.m_maxAngularStiffness            = 0.0;    // [N*m/Rad]
 
     // the maximum amount of stiffness supported by the gripper
     m_specifications.m_maxGripperLinearStiffness      = 1000;   // [N*m]
@@ -167,7 +174,7 @@ cHaplyDevice::cHaplyDevice(unsigned int a_deviceNumber)
     ////////////////////////////////////////////////////////////////////////////
     
     // Maximum recommended linear damping factor Kv
-    m_specifications.m_maxLinearDamping             = 20.0;   // [N/(m/s)]
+    m_specifications.m_maxLinearDamping             = 2.0;   // [N/(m/s)]
 
     //! Maximum recommended angular damping factor Kv (if actuated torques are available)
     m_specifications.m_maxAngularDamping            = 0.0;    // [N*m/(Rad/s)]
@@ -237,7 +244,7 @@ cHaplyDevice::cHaplyDevice(unsigned int a_deviceNumber)
 
     m_deviceAvailable = false; // this value should become 'true' when the device is available.
     m_serial = new WjwwoodSerial();
-    m_deviceAvailable = m_serial->open();
+    m_deviceAvailable = m_serial->open(m_port_name,m_baud_rate);
     if(m_deviceAvailable) {
         m_serial->close();
     }
@@ -252,8 +259,7 @@ cHaplyDevice::cHaplyDevice(unsigned int a_deviceNumber)
 cHaplyDevice::~cHaplyDevice()
 {
     // close connection to device
-    if (m_deviceReady)
-    {
+    if (m_deviceReady) {
         close();
     }
 }
@@ -268,7 +274,7 @@ cHaplyDevice::~cHaplyDevice()
 //==============================================================================
 bool cHaplyDevice::open()
 {
-    m_deviceAvailable = m_serial->open();
+    m_deviceAvailable = m_serial->open(m_port_name,m_baud_rate);
 
     // check if the system is available
     if (!m_deviceAvailable) return (C_ERROR);
@@ -299,28 +305,34 @@ bool cHaplyDevice::open()
     // result = openConnectionToMyDevice();
 
     m_board = new Board(m_serial);
-    if(!m_board || !m_board->board_available()){
+    if(!m_board) {
         std::cerr << "Couldn't create Haply board" << std::endl;
-    }
-    else{
-        m_device = new Device(HaplyTwoDOF, 5, m_board);
-           if(!m_device){
+    } else {
+        m_device = new Device(5, m_board);
+        if(!m_device) {
                std::cerr << "Couldn't create Haply device" << std::endl;
-           }
-           else{
+            delete(m_board);
+            m_board = 0;
+        } else {
+            /* Mechanism */
+            int cw = 0;
+            int ccw = 1;
+            m_pantograph = new Pantograph();
+            m_device->set_mechanism(m_pantograph);
+            m_device->add_actuator(1, cw, 1);
+            m_device->add_actuator(2, cw, 2);
+            m_device->add_encoder(1, cw, 180, 13824, 1);
+            m_device->add_encoder(2, cw, 0, 13824, 2);
+            m_device->device_set_parameters();
                 result = C_SUCCESS;
            }
     }
 
-
     // update device status
-    if (result)
-    {
+    if (result) {
         m_deviceReady = true;
         return (C_SUCCESS);
-    }
-    else
-    {
+    } else {
         m_deviceReady = false;
         return (C_ERROR);
     }
@@ -439,7 +451,7 @@ unsigned int cHaplyDevice::getNumDevices()
     int numberOfDevices = 0;  // At least set to 1 if a device is available.
 
     Serial* _serial = new WjwwoodSerial();
-    if(_serial){
+    if(_serial) {
         numberOfDevices = _serial->open();
         _serial->close();
     }
@@ -490,26 +502,26 @@ bool cHaplyDevice::getPosition(cVector3d& a_position)
     z = 0.0;    // z = getMyDevicePositionZ()
 
     result = m_board->data_available();
-    if(result){
-        std::vector<float> angles, pos_ee;
+    if(result) {
+        std::vector<float> angles, positions;
+        m_device->device_read_data();
         angles = m_device->get_device_angles();
-        pos_ee = m_device->get_device_position(angles);
+        positions = m_device->get_device_position(angles);
         float min_h = -0.074;
         float max_h =  0.098;
         float min_v =  0.037;
         float max_v =  0.119;
-        y = 0.2 * (2*(pos_ee[0] - min_h) / (max_h - min_h) - 1);
-        z = 0.1 * (2*(pos_ee[1] - min_v) / (max_v - min_v) - 1);
+        y = 0.2 * (2*(positions[0] - min_h) / (max_h - min_h) - 1);
+        z = 0.1 * (2*(positions[1] - min_v) / (max_v - min_v) - 1);
         m_position.set(0, -y, -z);
     }
+    //usleep(100);
 
     // store new position values
     a_position.set(m_position.x(), m_position.y(), m_position.z());
 
     // estimate linear velocity
     estimateLinearVelocity(a_position);
-
-    usleep(100);
 
     // exit
     return (result);
@@ -562,9 +574,15 @@ bool cHaplyDevice::getRotation(cMatrix3d& a_rotation)
 
     // if the device does not provide any rotation capabilities 
     // set the rotation matrix equal to the identity matrix.
-    r00 = 1.0;  r01 = 0.0;  r02 = 0.0;
-    r10 = 0.0;  r11 = 1.0;  r12 = 0.0;
-    r20 = 0.0;  r21 = 0.0;  r22 = 1.0;
+    r00 = 1.0;
+    r01 = 0.0;
+    r02 = 0.0;
+    r10 = 0.0;
+    r11 = 1.0;
+    r12 = 0.0;
+    r20 = 0.0;
+    r21 = 0.0;
+    r22 = 1.0;
 
     frame.set(r00, r01, r02, r10, r11, r12, r20, r21, r22);
 
@@ -679,10 +697,10 @@ bool cHaplyDevice::setForceAndTorqueAndGripperForce(const cVector3d& a_force,
     double gf = a_gripperForce;
 
     // *** INSERT YOUR CODE HERE ***
-    std::vector<float> f_ee(3,0);
-    f_ee[0] = -a_force(1);
-    f_ee[1] = -a_force(2);
-    m_device->set_device_torques(f_ee);
+    std::vector<float> forces(3,0);
+    forces[0] = -a_force(1);
+    forces[1] = -a_force(2);
+    m_device->set_device_torques(forces);
     m_device->device_write_torques();
 
     // setForceToMyDevice(fx, fy, fz);

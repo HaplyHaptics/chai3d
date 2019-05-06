@@ -51,6 +51,8 @@
 #include "devices/CGenericHapticDevice.h"
 #include "Haply/Board.h"
 #include "Haply/Device.h"
+#include "Haply/Pantograph.h"
+#include "Haply/Types.h"
 #include "Wjwwood/WjwwoodSerial.h"
 //------------------------------------------------------------------------------
 
@@ -195,7 +197,12 @@ protected:
     Haply::Serial* m_serial;
     Haply::Board* m_board;
     Haply::Device* m_device;
+    Haply::Mechanisms *m_pantograph;
     cVector3d m_position;
+    //! Baud rate of serial communication. Use 0 to let the serial implementation choose the baudrate:
+    int m_baud_rate;
+    //! Port name of board. Leave empty to let the serial implementation match the first available port:
+    std::string m_port_name;
 };
 
 //------------------------------------------------------------------------------
