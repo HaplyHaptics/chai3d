@@ -79,6 +79,8 @@ endif ()
 option(USE_DEBUG "Use Debug" ON)
 option(ENABLE_HAPLY_DEVICES "Enable Haply devices" ON)
 
+set(BUILD_SHARED_LIBS OFF)
+
 if(ENABLE_HAPLY_DEVICES)
 add_definitions(-DENABLE_HAPLY_DEVICES)
 endif()
