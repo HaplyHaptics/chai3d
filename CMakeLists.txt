@@ -78,6 +78,8 @@ endif ()
 
 option(USE_DEBUG "Use Debug" ON)
 option(ENABLE_HAPLY_DEVICES "Enable Haply devices" ON)
+option(BUILD_EXAMPLES "Build examples" ON)
+option(BUILD_UTILS "Build utils" ON)
 
 set(BUILD_SHARED_LIBS OFF)
 
@@ -247,7 +249,8 @@ add_definitions (${PROJECT_DEFINITIONS} -DGLEW_STATIC -DAL_ALEXT_PROTOTYPES -DAL
 add_library (chai3d STATIC ${source} ${source_eigen} ${source_gif} ${source_glew} ${source_3ds} ${source_jpeg} ${source_png} ${source_pugixml} ${source_openal} ${source_theora})
 
 # library exports
-set (CHAI3D_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src" "${PROJECT_SOURCE_DIR}/external/Eigen" "${PROJECT_SOURCE_DIR}/external/glew/include" "${OPENGL_INCLUDE_DIR}")
+set (CHAI3D_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src" "${CMAKE_CURRENT_SOURCE_DIR}/external/Eigen" "${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include" "${OPENGL_INCLUDE_DIR}")
+message("CHAI3D_INCLUDE_DIRS ${CHAI3D_INCLUDE_DIRS}")
 set (CHAI3D_LIBRARIES chai3d ${OPENGL_LIBRARIES})
 if(ENABLE_HAPLY_DEVICES)
 list(APPEND CHAI3D_LIBRARIES haply-api-cpp)
@@ -282,12 +285,12 @@ endif ()
 #
 
 # examples
-if (EXISTS ${PROJECT_SOURCE_DIR}/examples)
+if (BUILD_EXAMPLES AND EXISTS ${PROJECT_SOURCE_DIR}/examples)
   add_subdirectory (${PROJECT_SOURCE_DIR}/examples)
 endif ()
 
 # utilities
-if (EXISTS ${PROJECT_SOURCE_DIR}/utils)
+if (BUILD_UTILS AND EXISTS ${PROJECT_SOURCE_DIR}/utils)
   add_subdirectory (${PROJECT_SOURCE_DIR}/utils)
 endif ()
 
