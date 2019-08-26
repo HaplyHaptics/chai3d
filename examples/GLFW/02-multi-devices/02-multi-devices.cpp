@@ -498,9 +498,9 @@ void keyCallback(GLFWwindow* a_window, int a_key, int a_scancode, int a_action, 
     {
         useForceField = !useForceField;
         if (useForceField)
-            cout << "> Enable force field     \r";
+            cout << "> Enable force field     \n";
         else
-            cout << "> Disable force field    \r";
+            cout << "> Disable force field    \n";
     }
 
     // option - enable/disable damping
@@ -508,9 +508,9 @@ void keyCallback(GLFWwindow* a_window, int a_key, int a_scancode, int a_action, 
     {
         useDamping = !useDamping;
         if (useDamping)
-            cout << "> Enable damping         \r";
+            cout << "> Enable damping         \n";
         else
-            cout << "> Disable damping        \r";
+            cout << "> Disable damping        \n";
     }
 
     // option - toggle fullscreen
