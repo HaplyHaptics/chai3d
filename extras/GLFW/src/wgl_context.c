@@ -155,11 +155,13 @@ static int choosePixelFormat(_GLFWwindow* window, const _GLFWfbconfig* desired)
                 continue;
             }
 
-            if (!(pfd.dwFlags & PFD_GENERIC_ACCELERATED) &&
-                (pfd.dwFlags & PFD_GENERIC_FORMAT))
-            {
-                continue;
-            }
+            // Relax testing for proper 3D acceleration on virtual machines
+            // https://github.com/glfw/glfw/issues/589
+            // if (!(pfd.dwFlags & PFD_GENERIC_ACCELERATED) &&
+            //     (pfd.dwFlags & PFD_GENERIC_FORMAT))
+            // {
+            //     continue;
+            // }
 
             if (pfd.iPixelType != PFD_TYPE_RGBA)
                 continue;
